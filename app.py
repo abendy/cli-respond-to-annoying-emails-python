@@ -29,33 +29,16 @@ def SendMessage(service, body):
     return message
 
 
-def CreateMessage(service, thread_id, from_email, subject_email, send_alias):
+def CreateMessage(service, thread_id, from_email, subject_email):
     message_text = '<div><span style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px">The response was:</span><br style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px"><p style="font-family:monospace;font-size:12.8px">The email account that you tried to reach does not exist. Please try double-checking the recipient\'s email address for typos or unnecessary spaces. Learn more at&nbsp;<a href="https://support.google.com/mail/?p=NoSuchUser" style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://support.google.com/mail/?p%3DNoSuchUser&amp;source=gmail&amp;ust=1550058176781000&amp;usg=AFQjCNFyvVFoIWc422emQFheOcPIjEAKhw">https://support.google.com/<wbr>mail/?p=NoSuchUser</a>&nbsp;<wbr>x22sor4004529oto.92 - gsmtp</p></div>'
-
-    send_as_email = send_alias.get('sendAsEmail', [])
-    display_name = send_alias.get('displayName', [])
 
     message = MIMEText(message_text, 'html')
     message['to'] = from_email
-    message['from'] = display_name + '<' + send_as_email + '>'
+    message['from'] = 'Mailer Delivery Subsystem <mailer-daemon@allanbendy.com>'
     message['subject'] = subject_email
     body = {'threadId': thread_id, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
     SendMessage(service, body)
-
-
-def ListSendAs(service, thread_id, from_email, subject_email):
-    response = service.users().settings().sendAs().list(userId='me').execute()
-
-    aliases = []
-    if 'sendAs' in response:
-        aliases.extend(response['sendAs'])
-
-        for send_alias in aliases:
-            send_as_email = send_alias.get('sendAsEmail', [])
-
-            if send_as_email == 'mailer-daemon@allanbendy.com':
-                CreateMessage(service, thread_id, from_email, subject_email, send_alias)
 
 
 def GetMessage(service, thread_id, msg_id):
@@ -76,7 +59,7 @@ def GetMessage(service, thread_id, msg_id):
         if header['name'] == 'Subject':
             subject_email = header['value']
 
-    ListSendAs(service, thread_id, from_email, subject_email)
+    CreateMessage(service, thread_id, from_email, subject_email)
 
 
 def ListMessagesMatchingQuery(service, q):
