@@ -38,11 +38,11 @@ def CreateMessage(service, userId, fromEmail, subjectEmail, sendAlias):
     sendAsEmail = sendAlias.get('sendAsEmail', [])
     displayName = sendAlias.get('displayName', [])
 
-    message = MIMEText(message_text)
+    message = MIMEText(message_text, 'html')
     message['to'] = fromEmail
     message['from'] = displayName + '<' + sendAsEmail + '>'
     message['subject'] = subjectEmail
-    encoded_message = {'raw': base64.urlsafe_b64encode(message.as_string())}
+    encoded_message = {'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
     SendMessage(service, userId, encoded_message)
 
