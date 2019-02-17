@@ -1,0 +1,4 @@
+.vscode/
+Pipfile*
+client_id.json
+token.pickle
