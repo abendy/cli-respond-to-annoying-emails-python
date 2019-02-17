@@ -1,19 +1,16 @@
 from __future__ import print_function
 import pickle
-import os.path
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+import os
 import sys
 import json
 import base64
 import email
+import mimetypes
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 from email.mime.base import MIMEBase
 from email.mime.text import MIMEText
-import mimetypes
-import os
-
-from pprint import pprint
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = [
@@ -27,80 +24,79 @@ SCOPES = [
 ]
 
 
-def SendMessage(service, userId, encoded_message):
-    message = (service.users().messages().send(userId=userId, body=encoded_message).execute())
+def SendMessage(service, body):
+    message = (service.users().messages().send(userId='me', body=body).execute())
     return message
 
 
-def CreateMessage(service, userId, threadId, fromEmail, subjectEmail, sendAlias):
+def CreateMessage(service, thread_id, from_email, subject_email, send_alias):
     message_text = '<div><span style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px">The response was:</span><br style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px"><p style="font-family:monospace;font-size:12.8px">The email account that you tried to reach does not exist. Please try double-checking the recipient\'s email address for typos or unnecessary spaces. Learn more at&nbsp;<a href="https://support.google.com/mail/?p=NoSuchUser" style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://support.google.com/mail/?p%3DNoSuchUser&amp;source=gmail&amp;ust=1550058176781000&amp;usg=AFQjCNFyvVFoIWc422emQFheOcPIjEAKhw">https://support.google.com/<wbr>mail/?p=NoSuchUser</a>&nbsp;<wbr>x22sor4004529oto.92 - gsmtp</p></div>'
 
-    sendAsEmail = sendAlias.get('sendAsEmail', [])
-    displayName = sendAlias.get('displayName', [])
+    send_as_email = send_alias.get('sendAsEmail', [])
+    display_name = send_alias.get('displayName', [])
 
     message = MIMEText(message_text, 'html')
-    message['to'] = fromEmail
-    message['from'] = displayName + '<' + sendAsEmail + '>'
-    message['subject'] = subjectEmail
-    encoded_message = {'threadId': threadId, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+    message['to'] = from_email
+    message['from'] = display_name + '<' + send_as_email + '>'
+    message['subject'] = subject_email
+    body = {'threadId': thread_id, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
-    SendMessage(service, userId, encoded_message)
+    SendMessage(service, body)
 
 
-def ListSendAs(service, userId, threadId, fromEmail, subjectEmail):
-    response = service.users().settings().sendAs().list(userId=userId).execute()
+def ListSendAs(service, thread_id, from_email, subject_email):
+    response = service.users().settings().sendAs().list(userId='me').execute()
 
     aliases = []
     if 'sendAs' in response:
         aliases.extend(response['sendAs'])
 
-        for sendAlias in aliases:
-            sendAsEmail = sendAlias.get('sendAsEmail', [])
+        for send_alias in aliases:
+            send_as_email = send_alias.get('sendAsEmail', [])
 
-            if sendAsEmail == 'mailer-daemon@allanbendy.com':
-                CreateMessage(service, userId, threadId, fromEmail, subjectEmail, sendAlias)
+            if send_as_email == 'mailer-daemon@allanbendy.com':
+                CreateMessage(service, thread_id, from_email, subject_email, send_alias)
 
 
-def GetMessage(service, userId, threadId, msgId):
+def GetMessage(service, thread_id, msg_id):
     # Mark as read
-    service.users().messages().modify(userId=userId, id=msgId, body={'removeLabelIds': ['UNREAD']}).execute()
+    service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute()
 
-    message = service.users().messages().get(userId=userId, id=msgId).execute()
+    # Get message
+    message = service.users().messages().get(userId='me', id=msg_id).execute()
     print('Message snippet: %s' % message['snippet'])
 
-    headers = service.users().threads().get(userId=userId, id=threadId, format='metadata').execute()['messages'][0]['payload']['headers']
+    # Get headers
+    headers = service.users().threads().get(userId='me', id=thread_id, format='metadata').execute()['messages'][0]['payload']['headers']
 
     for header in headers:
         if header['name'] == 'From':
-            fromEmail = header['value']
+            from_email = header['value']
 
         if header['name'] == 'Subject':
-            subjectEmail = header['value']
+            subject_email = header['value']
 
-    ListSendAs(service, userId, threadId, fromEmail, subjectEmail)
+    ListSendAs(service, thread_id, from_email, subject_email)
 
 
-def ListMessagesMatchingQuery(service, userId, q=''):
-    response = service.users().messages().list(userId=userId, q=q).execute()
+def ListMessagesMatchingQuery(service, q):
+    response = service.users().messages().list(userId='me', q=q).execute()
 
     messages = []
     if 'messages' in response:
         messages.extend(response['messages'])
 
         for message in messages:
-            msgId = message.get('id', [])
-            threadId = message.get('threadId', [])
+            msg_id = message.get('id', [])
+            thread_id = message.get('threadId', [])
 
-            print('threadId: ' + threadId)
-            print('msgId: ' + msgId)
+            print('thread_id: ' + thread_id)
+            print('msg_id: ' + msg_id)
 
-            GetMessage(service, userId, threadId, msgId)
-    
+            GetMessage(service, thread_id, msg_id)
+
 
 def main():
-    """Shows basic usage of the Gmail API.
-    Lists the user's Gmail labels.
-    """
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -121,10 +117,9 @@ def main():
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
-    userId='me'
     q='from:allan.bendy@yahoo.com is:unread'
 
-    ListMessagesMatchingQuery(service, userId, q)
+    ListMessagesMatchingQuery(service, q)
    
 
 if __name__ == '__main__':
