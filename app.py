@@ -62,6 +62,9 @@ def ListSendAs(service, userId, threadId, fromEmail, subjectEmail):
 
 
 def GetMessage(service, userId, threadId, msgId):
+    # Mark as read
+    service.users().messages().modify(userId=userId, id=msgId, body={'removeLabelIds': ['UNREAD']}).execute()
+
     message = service.users().messages().get(userId=userId, id=msgId).execute()
     print('Message snippet: %s' % message['snippet'])
 
