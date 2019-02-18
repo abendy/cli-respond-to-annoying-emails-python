@@ -30,7 +30,10 @@ def SendMessage(service, body):
 
 
 def CreateMessage(service, thread_id, from_email, subject_email):
-    message_text = '<div><span style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px">The response was:</span><br style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px"><p style="font-family:monospace;font-size:12.8px">The email account that you tried to reach does not exist. Please try double-checking the recipient\'s email address for typos or unnecessary spaces. Learn more at&nbsp;<a href="https://support.google.com/mail/?p=NoSuchUser" style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://support.google.com/mail/?p%3DNoSuchUser&amp;source=gmail&amp;ust=1550058176781000&amp;usg=AFQjCNFyvVFoIWc422emQFheOcPIjEAKhw">https://support.google.com/<wbr>mail/?p=NoSuchUser</a>&nbsp;<wbr>x22sor4004529oto.92 - gsmtp</p></div>'
+    message_text = '<div>'
+    message_text += '<span style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px">The response was:</span><br>'
+    message_text += '<p style="font-family:monospace;font-size:12.8px">The email account that you tried to reach does not exist. Please try double-checking the recipient\'s email address for typos or unnecessary spaces. Learn more at&nbsp;<a href="https://support.google.com/mail/?p=NoSuchUser" style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://support.google.com/mail/?p%3DNoSuchUser&amp;source=gmail&amp;ust=1550058176781000&amp;usg=AFQjCNFyvVFoIWc422emQFheOcPIjEAKhw">https://support.google.com/<wbr>mail/?p=NoSuchUser</a>&nbsp;<wbr>x22sor4004529oto.92 - gsmtp</p>'
+    message_text += '</div>'
 
     message = MIMEText(message_text, 'html')
     message['to'] = from_email
