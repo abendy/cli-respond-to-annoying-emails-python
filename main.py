@@ -83,7 +83,7 @@ def ListMessagesMatchingQuery(service, q):
             GetMessage(service, thread_id, msg_id)
 
 
-def main():
+def main(self):
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
