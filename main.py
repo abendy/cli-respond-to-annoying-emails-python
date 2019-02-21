@@ -6,6 +6,7 @@ import json
 import base64
 import email
 import mimetypes
+import re
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -83,7 +84,7 @@ def ListMessagesMatchingQuery(service, q):
             GetMessage(service, thread_id, msg_id)
 
 
-def main(self):
+def main():
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -104,10 +105,23 @@ def main(self):
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
-    q='from:allan.bendy@yahoo.com is:unread'
+    q='is:unread from:'
 
-    ListMessagesMatchingQuery(service, q)
-   
+    args = sys.argv[1:]
+
+    if len(args) > 0:
+        regex = re.compile("^[^@]+\\@[\\w\\.]+$", )
+
+        if regex.match(args[0]) is not None:
+            email = args[0]
+            q += email
+            print('Email search: `%s`' % q)
+
+            ListMessagesMatchingQuery(service, q)
+        else:
+            print('Argument not an email...')
+    else:
+        print('Requires email argument')
 
 if __name__ == '__main__':
     main()
