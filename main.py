@@ -37,7 +37,7 @@ def CreateMessage(service, thread_id, from_email, subject_email):
 
     message = MIMEText(message_text, 'html')
     message['to'] = from_email
-    message['from'] = 'Mailer Delivery Subsystem <mailer-daemon@allanbendy.com>'
+    message['from'] = 'Mailer Delivery Subsystem <mailer-daemon@mailserv.allanbendy.com>'
     message['reply-to'] = 'no-reply@allanbendy.com'
     message['subject'] = subject_email
     body = {'threadId': thread_id, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
