@@ -67,23 +67,6 @@ def GetMessage(service, thread_id, msg_id):
 
     CreateMessage(service, thread_id, from_email, subject_email)
 
-
-def ListMessagesMatchingQuery(service, q):
-    response = service.users().messages().list(userId='me', q=q).execute()
-
-    messages = []
-    if 'messages' in response:
-        messages.extend(response['messages'])
-
-        for message in messages:
-            msg_id = message.get('id', [])
-            thread_id = message.get('threadId', [])
-
-            print('thread_id: ' + thread_id)
-            print('msg_id: ' + msg_id)
-
-            GetMessage(service, thread_id, msg_id)
-
 def validate_email(ctx, param, value):
     match = re.match(r'^[^@]*\@[\w\.]+\w+$', value)
     if match is not None:
@@ -122,7 +105,20 @@ def main(email, keyword):
 
     print('Email search: `%s`' % q)
 
-    ListMessagesMatchingQuery(service, q)
+    response = service.users().messages().list(userId='me', q=q).execute() #pylint: disable=no-member
+
+    messages = []
+    if 'messages' in response:
+        messages.extend(response['messages'])
+
+    for message in messages:
+        msg_id = message.get('id', [])
+        thread_id = message.get('threadId', [])
+
+        print('thread_id: ' + thread_id)
+        print('msg_id: ' + msg_id)
+
+        GetMessage(service, thread_id, msg_id)
 
 if __name__ == '__main__':
     main() #pylint: disable=no-value-for-parameter
