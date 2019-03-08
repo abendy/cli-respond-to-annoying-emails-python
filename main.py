@@ -125,4 +125,4 @@ def main(email, keyword):
     ListMessagesMatchingQuery(service, q)
 
 if __name__ == '__main__':
-    main()
+    main() #pylint: disable=no-value-for-parameter
