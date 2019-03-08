@@ -95,17 +95,17 @@ def main(email, keyword):
         thread_id = message.get('threadId', [])
 
         # Get message
-        message = service.users().messages().get(userId='me', id=msg_id).execute()
+        message = service.users().messages().get(userId='me', id=msg_id).execute() #pylint: disable=no-member
 
         # Get headers
-        headers = service.users().threads().get(userId='me', id=thread_id, format='metadata').execute()['messages'][0]['payload']['headers']
+        headers = service.users().threads().get(userId='me', id=thread_id, format='metadata').execute()['messages'][0]['payload']['headers'] #pylint: disable=no-member
 
         print('Message snippet: %s' % message['snippet'])
         print('thread_id: %s' % thread_id)
         print('msg_id: %s' % msg_id)
 
         # Mark as read
-        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute()
+        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute() #pylint: disable=no-member
 
         for header in headers:
             if header['name'] == 'From':
