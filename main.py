@@ -6,6 +6,7 @@ import base64
 import email
 import mimetypes
 import re
+import click
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -82,8 +83,10 @@ def ListMessagesMatchingQuery(service, q):
 
             GetMessage(service, thread_id, msg_id)
 
-
-def main():
+@click.command()
+@click.option("-e", "--email", required=True, help="Email search string")
+@click.option("-k", "--keyword", help="Search keyword")
+def main(email, keyword):
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -106,21 +109,17 @@ def main():
     service = build('gmail', 'v1', credentials=creds)
     q='is:unread from:'
 
-    args = sys.argv[1:]
+    regex = re.compile("^[^@]*\\@[\\w\\.]+$", )
 
-    if len(args) > 0:
-        regex = re.compile("^[^@]+\\@[\\w\\.]+$", )
+    if regex.match(email) is not None:
+        q += email
+        if keyword is not None:
+            q += " " + keyword
+        print('Email search: `%s`' % q)
 
-        if regex.match(args[0]) is not None:
-            email = args[0]
-            q += email
-            print('Email search: `%s`' % q)
-
-            ListMessagesMatchingQuery(service, q)
-        else:
-            print('Argument not an email...')
+        ListMessagesMatchingQuery(service, q)
     else:
-        print('Requires email argument')
+        print('Argument not an email...')
 
 if __name__ == '__main__':
     main()
