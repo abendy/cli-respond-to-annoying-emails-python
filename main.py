@@ -25,27 +25,6 @@ SCOPES = [
     'https://www.googleapis.com/auth/gmail.settings.basic'
 ]
 
-
-def SendMessage(service, body):
-    message = (service.users().messages().send(userId='me', body=body).execute())
-    return message
-
-@click.command()
-@click.option("-t", "--template", required=True, help="Email Reply HTML Template")
-def CreateMessage(service, thread_id, from_email, subject_email, template):
-    file = template + ".html"
-    f=codecs.open(file, 'r')
-    message_text = f.read()
-
-    message = MIMEText(message_text, 'html')
-    message['to'] = from_email
-    message['from'] = 'Mailer Delivery Subsystem <mailer-daemon@mailserv.allanbendy.com>'
-    message['reply-to'] = 'no-reply@allanbendy.com'
-    message['subject'] = subject_email
-    body = {'threadId': thread_id, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
-
-    SendMessage(service, body)
-
 def validate_email(ctx, param, value):
     match = re.match(r'^[^@]*\@[\w\.]+\w+$', value)
     if match is not None:
@@ -56,7 +35,8 @@ def validate_email(ctx, param, value):
 @click.command()
 @click.option("-e", "--email", help="Email search string", required=True, callback=validate_email)
 @click.option("-k", "--keyword", help="Search keyword")
-def main(email, keyword):
+@click.option("-t", "--template", help="Email Reply HTML Template", required=True)
+def main(email, keyword, template):
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -104,9 +84,6 @@ def main(email, keyword):
         print('thread_id: %s' % thread_id)
         print('msg_id: %s' % msg_id)
 
-        # Mark as read
-        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute() #pylint: disable=no-member
-
         for header in headers:
             if header['name'] == 'From':
                 from_email = header['value']
@@ -114,7 +91,24 @@ def main(email, keyword):
             if header['name'] == 'Subject':
                 subject_email = header['value']
 
-        CreateMessage(service, thread_id, from_email, subject_email)
+        file = template + ".html"
+        f=codecs.open('templates/' + file, 'r')
+        message_text = f.read()
+
+        message = MIMEText(message_text, 'html')
+        message['to'] = from_email
+        message['from'] = 'Mailer Delivery Subsystem <mailer-daemon@mailserv.allanbendy.com>'
+        message['reply-to'] = 'no-reply@allanbendy.com'
+        message['subject'] = subject_email
+        body = {'threadId': thread_id, 'raw': base64.urlsafe_b64encode(message.as_bytes()).decode()}
+
+        # Mark as read
+        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute() #pylint: disable=no-member
+
+        # Send reply
+        message = (service.users().messages().send(userId='me', body=body).execute()) #pylint: disable=no-member
+
+        print('Reply sent')
 
 if __name__ == '__main__':
     main() #pylint: disable=no-value-for-parameter
