@@ -1,5 +1,4 @@
 .DS_Store
 .vscode/
-Pipfile.lock
 client_id.json
 token.pickle
