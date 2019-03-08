@@ -7,6 +7,7 @@ import email
 import mimetypes
 import re
 import click
+import codecs
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -29,12 +30,12 @@ def SendMessage(service, body):
     message = (service.users().messages().send(userId='me', body=body).execute())
     return message
 
-
-def CreateMessage(service, thread_id, from_email, subject_email):
-    message_text = '<div>'
-    message_text += '<span style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif;font-size:12.8px">The response was:</span><br>'
-    message_text += '<p style="font-family:monospace;font-size:12.8px">The email account that you tried to reach does not exist. Please try double-checking the recipient\'s email address for typos or unnecessary spaces. Learn more at&nbsp;<a href="https://support.google.com/mail/?p=NoSuchUser" style="font-family:Roboto,&quot;Helvetica Neue&quot;,Helvetica,Arial,sans-serif" target="_blank" data-saferedirecturl="https://www.google.com/url?q=https://support.google.com/mail/?p%3DNoSuchUser&amp;source=gmail&amp;ust=1550058176781000&amp;usg=AFQjCNFyvVFoIWc422emQFheOcPIjEAKhw">https://support.google.com/<wbr>mail/?p=NoSuchUser</a>&nbsp;<wbr>x22sor4004529oto.92 - gsmtp</p>'
-    message_text += '</div>'
+@click.command()
+@click.option("-t", "--template", required=True, help="Email Reply HTML Template")
+def CreateMessage(service, thread_id, from_email, subject_email, template):
+    file = template + ".html"
+    f=codecs.open(file, 'r')
+    message_text = f.read()
 
     message = MIMEText(message_text, 'html')
     message['to'] = from_email
