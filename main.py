@@ -46,27 +46,6 @@ def CreateMessage(service, thread_id, from_email, subject_email, template):
 
     SendMessage(service, body)
 
-
-def GetMessage(service, thread_id, msg_id):
-    # Mark as read
-    service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute()
-
-    # Get message
-    message = service.users().messages().get(userId='me', id=msg_id).execute()
-    print('Message snippet: %s' % message['snippet'])
-
-    # Get headers
-    headers = service.users().threads().get(userId='me', id=thread_id, format='metadata').execute()['messages'][0]['payload']['headers']
-
-    for header in headers:
-        if header['name'] == 'From':
-            from_email = header['value']
-
-        if header['name'] == 'Subject':
-            subject_email = header['value']
-
-    CreateMessage(service, thread_id, from_email, subject_email)
-
 def validate_email(ctx, param, value):
     match = re.match(r'^[^@]*\@[\w\.]+\w+$', value)
     if match is not None:
@@ -115,10 +94,27 @@ def main(email, keyword):
         msg_id = message.get('id', [])
         thread_id = message.get('threadId', [])
 
-        print('thread_id: ' + thread_id)
-        print('msg_id: ' + msg_id)
+        # Get message
+        message = service.users().messages().get(userId='me', id=msg_id).execute()
 
-        GetMessage(service, thread_id, msg_id)
+        # Get headers
+        headers = service.users().threads().get(userId='me', id=thread_id, format='metadata').execute()['messages'][0]['payload']['headers']
+
+        print('Message snippet: %s' % message['snippet'])
+        print('thread_id: %s' % thread_id)
+        print('msg_id: %s' % msg_id)
+
+        # Mark as read
+        service.users().messages().modify(userId='me', id=msg_id, body={'removeLabelIds': ['UNREAD']}).execute()
+
+        for header in headers:
+            if header['name'] == 'From':
+                from_email = header['value']
+
+            if header['name'] == 'Subject':
+                subject_email = header['value']
+
+        CreateMessage(service, thread_id, from_email, subject_email)
 
 if __name__ == '__main__':
     main() #pylint: disable=no-value-for-parameter
