@@ -115,15 +115,14 @@ def main(email, keyword):
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
-    q='is:unread from:'
+    q='is:unread from:' + email
 
-    if email is not None:
-        q += email
-        if keyword is not None:
-            q += " " + keyword
-        print('Email search: `%s`' % q)
+    if keyword is not None:
+        q += " " + keyword
 
-        ListMessagesMatchingQuery(service, q)
+    print('Email search: `%s`' % q)
+
+    ListMessagesMatchingQuery(service, q)
 
 if __name__ == '__main__':
     main()
