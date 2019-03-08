@@ -84,8 +84,15 @@ def ListMessagesMatchingQuery(service, q):
 
             GetMessage(service, thread_id, msg_id)
 
+def validate_email(ctx, param, value):
+    match = re.match(r'^[^@]*\@[\w\.]+\w+$', value)
+    if match is not None:
+        return value
+    else:
+        raise click.BadParameter('Email format: user@domain.com OR @domain.com')
+
 @click.command()
-@click.option("-e", "--email", required=True, help="Email search string")
+@click.option("-e", "--email", help="Email search string", required=True, callback=validate_email)
 @click.option("-k", "--keyword", help="Search keyword")
 def main(email, keyword):
     creds = None
@@ -110,17 +117,13 @@ def main(email, keyword):
     service = build('gmail', 'v1', credentials=creds)
     q='is:unread from:'
 
-    regex = re.compile("^[^@]*\\@[\\w\\.]+$", )
-
-    if regex.match(email) is not None:
+    if email is not None:
         q += email
         if keyword is not None:
             q += " " + keyword
         print('Email search: `%s`' % q)
 
         ListMessagesMatchingQuery(service, q)
-    else:
-        print('Argument not an email...')
 
 if __name__ == '__main__':
     main()
