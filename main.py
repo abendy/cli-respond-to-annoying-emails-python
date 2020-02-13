@@ -51,8 +51,8 @@ def main(email, keyword, template, unread):
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'client_id.json', SCOPES)
             creds = flow.run_local_server()
+                'config/client_id.json', SCOPES)
         # Save the credentials for the next run
         with open('config/token.pickle', 'wb') as token:
             pickle.dump(creds, token)
