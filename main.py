@@ -35,7 +35,7 @@ def validate_email(ctx, param, value):
 @click.command()
 @click.option("-e", "--email", help="Email search string", required=True, callback=validate_email)
 @click.option("-k", "--keyword", help="Search keyword")
-@click.option("-t", "--template", help="Email Reply HTML Template", required=True)
+@click.option("-t", "--template", help="Email reply template", required=True)
 @click.option("-u", "--unread", help="Unread emails only", default=False)
 def main(email, keyword, template, unread):
     creds = None
