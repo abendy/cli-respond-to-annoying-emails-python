@@ -36,7 +36,8 @@ def validate_email(ctx, param, value):
 @click.option("-e", "--email", help="Email search string", required=True, callback=validate_email)
 @click.option("-k", "--keyword", help="Search keyword")
 @click.option("-t", "--template", help="Email Reply HTML Template", required=True)
-def main(email, keyword, template):
+@click.option("-u", "--unread", help="Unread emails only", default=False)
+def main(email, keyword, template, unread):
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
@@ -57,7 +58,10 @@ def main(email, keyword, template):
             pickle.dump(creds, token)
 
     service = build('gmail', 'v1', credentials=creds)
-    q='is:unread from:' + email
+    q="from:" + email
+
+    if unread is not None:
+        q += " is:unread"
 
     if keyword is not None:
         q += " " + keyword
