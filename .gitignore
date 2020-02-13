@@ -1,4 +1,5 @@
 .DS_Store
 .vscode/
-client_id.json
-token.pickle
+!config/
+config/client_id.json
+config/token.pickle
