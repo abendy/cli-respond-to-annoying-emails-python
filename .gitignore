@@ -3,3 +3,4 @@
 !config/
 config/client_id.json
 config/token.pickle
+venv/
